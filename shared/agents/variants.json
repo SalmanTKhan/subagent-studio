@@ -1,0 +1,92 @@
+[
+  {
+    "plugin": "studio-core",
+    "name": "builder",
+    "body": "builder",
+    "description": "Builds one plan step or one small task inside the worktree the prompt names, runs the project's CI commands and the step's acceptance, and reports; it never commits, pushes or launches agents. Pick it for any step that needs judgement: design choices left open, security, money, data migrations or user-visible behaviour. A fully specified, mechanical step goes to builder-sonnet instead.",
+    "model": "opus",
+    "effort": "medium",
+    "tools": ["Bash", "Read", "Edit", "Write", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "builder-sonnet",
+    "body": "builder",
+    "description": "The cheaper builder, same body as builder. Pick it only for a step that names its files, gives the behaviour, has a mechanical acceptance command, and touches no security, money, data migration or user-visible behaviour, or for a minor review finding already judged with its fix and check written down. It stops and reports anything not written down instead of deciding it.",
+    "model": "sonnet",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Edit", "Write", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "reviewer",
+    "body": "reviewer",
+    "description": "The fresh, independent reviewer for the second review pass: read-only by tool, reviews fixed SHAs only, runs code in its own git archive copy, proves each finding and grades it blocker, major or minor. Launch a new one for every review, never the agent that wrote the change and never a resumed one. Pass one, the author's own review, is reviewer-pass-one.",
+    "model": "opus",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Grep", "Glob", "WebFetch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "reviewer-pass-one",
+    "body": "reviewer",
+    "description": "The reviewer for pass one, the author's own review before the fresh reviewer: same body and rules as reviewer, kept as a separate type so pass one can move to another model or effort on its own. Use reviewer, not this, for the independent second pass.",
+    "model": "opus",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Grep", "Glob", "WebFetch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "planner",
+    "body": "planner",
+    "description": "Read-only planner for a big feature, a re-plan or an amendment to an existing plan: explores, decides, and returns the plan as text with Files, Does, Acceptance, Risk, Parallel with and Model on every step; the calling run saves it. Use planner-max instead when the plan is hard to reverse, or both complex and critical.",
+    "model": "opus",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "planner-max",
+    "body": "planner",
+    "description": "Planner for work that is hard to reverse or both complex and critical: a new product's architecture, core data models, security or money paths, data migrations. Same body as planner and the same model and effort today, kept as a separate type so either can move to another model or effort on its own.",
+    "model": "opus",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-core",
+    "name": "searcher",
+    "body": "searcher",
+    "description": "Cheap read-only lookups in the repo: where a rule, symbol, string or id lives, every file that mentions something, what a line range says, a count from a log or CSV, reported as path:line with quotes and the command behind each count. Never for judgement: it does not review, plan, decide, fix or write.",
+    "model": "haiku",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Grep", "Glob"]
+  },
+  {
+    "plugin": "studio-research",
+    "name": "research-lead",
+    "body": "research-lead",
+    "description": "Frames or writes a research run (skill research-run): as framer it writes the research plan in gather blocks and decides no winner; as writer it writes the report from the gatherers' fact files only, judges each rubric criterion exactly as written and never lowers a threshold. Also the fixer after the checker. Writes only the files its brief names.",
+    "model": "opus",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Edit", "Write", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-research",
+    "name": "gatherer",
+    "body": "gatherer",
+    "description": "The cheap web reader of a research run (skill research-run): runs one gather block, reads live public pages and writes one fact file with every figure's URL and read date. It never estimates, decides no criterion and picks no winner. A page that needs a browser is listed as unread with the reason, for gatherer-browser.",
+    "model": "haiku",
+    "effort": "high",
+    "tools": ["Bash", "Read", "Edit", "Write", "Grep", "Glob", "WebFetch", "WebSearch"]
+  },
+  {
+    "plugin": "studio-research",
+    "name": "gatherer-browser",
+    "body": "gatherer",
+    "description": "The gatherer for pages that need a browser (the browser read of skill research-run): same body as gatherer, and it inherits every tool the session has, so it reaches whatever browser MCP tools you installed. A browser MCP server's name differs from one install to the next, so this variant lists no tools and inherits them all. Use it only for the pages other gatherers listed under Needs a browser.",
+    "model": "haiku",
+    "effort": "high",
+    "tools": []
+  }
+]

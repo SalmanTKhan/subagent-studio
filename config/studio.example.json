@@ -1,0 +1,43 @@
+{
+  "$schema": "./studio.schema.json",
+  "roles": {
+    "builder": { "model": "sonnet", "effort": "medium" },
+    "reviewer": { "model": "opus", "effort": "high" },
+    "searcher": { "model": "haiku" }
+  },
+  "core": {
+    "main_branch": "main",
+    "ci_commands": [
+      "ruff check .",
+      "mypy src",
+      "python -m pytest -q"
+    ],
+    "plan": {
+      "big_also": [
+        "changes the on-disk file format",
+        "adds a new command-line subcommand"
+      ]
+    },
+    "review": {
+      "passes": 2,
+      "reviewed_paths": ["src", "tests", "scripts", "pyproject.toml", ".github", ".claude", "CLAUDE.md"],
+      "land": "merge-no-ff"
+    }
+  },
+  "context": {
+    "timezone": "Europe/Berlin"
+  },
+  "unattended": {
+    "max_tasks_per_run": 2,
+    "run_minutes": 45,
+    "notify": {
+      "channels": ["ops"]
+    },
+    "permission_gate": {
+      "protected_paths": ["data/fixtures", ".env"]
+    }
+  },
+  "research": {
+    "max_gatherers": 4
+  }
+}

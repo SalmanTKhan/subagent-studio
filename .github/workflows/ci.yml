@@ -1,0 +1,82 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Tests
+        run: bash tests/run_all.sh
+
+      - name: Generated agents match their sources
+        run: python3 tools/build_agents.py --check
+
+      - name: Shared loader copies match the source
+        run: python3 tools/sync_shared.py --check
+
+      # Warnings only for now: the step never fails the build.
+      - name: shellcheck (warnings only)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          files=$(git ls-files '*.sh')
+          if [ -n "$files" ]; then
+            # shellcheck disable=SC2086
+            shellcheck --severity=warning $files || echo "::warning::shellcheck reported findings"
+          fi
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Pinned to the commit of tag v2.3.9.
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  plugin-validate:
+    runs-on: ubuntu-latest
+    # The validator only reads the manifests, skills and agents; it needs no
+    # API key. Kept non-blocking while the validator's rules settle.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install the Claude Code CLI
+        run: npm i -g @anthropic-ai/claude-code
+
+      - name: Validate the marketplace
+        run: claude plugin validate . --strict
+
+      - name: Validate each plugin
+        run: |
+          status=0
+          for p in plugins/*/; do
+            echo "== $p"
+            claude plugin validate "$p" --strict || status=1
+          done
+          exit "$status"

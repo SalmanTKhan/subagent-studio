@@ -1,0 +1,29 @@
+{
+  "description": "Answer permission prompts in unattended runs; alarm a human when a prompt still waits.",
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/permission_gate.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/prompt_alarm.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

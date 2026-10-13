@@ -1,0 +1,17 @@
+{
+  "name": "studio-research",
+  "version": "0.1.0",
+  "description": "A phased, resumable research pipeline: parallel gatherers, a writer and a fresh checker.",
+  "author": {
+    "name": "subagent-studio contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "subagents",
+    "fact-checking"
+  ],
+  "dependencies": [
+    "studio-core"
+  ]
+}

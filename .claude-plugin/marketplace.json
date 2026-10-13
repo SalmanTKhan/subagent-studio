@@ -1,0 +1,37 @@
+{
+  "name": "subagent-studio",
+  "owner": {
+    "name": "priyanshujha",
+    "url": "https://github.com/priyanshujha"
+  },
+  "metadata": {
+    "description": "Subagent roles, plan-then-build, fresh-agent review, unattended runs and a research pipeline for Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "studio-core",
+      "source": "./plugins/studio-core",
+      "description": "Lean builder, reviewer and planner agents with the plan-then-build and two-pass review skills.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "studio-context",
+      "source": "./plugins/studio-context",
+      "description": "Context budgets for CLAUDE.md, skills and agents, with token and effort-level reports.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "studio-unattended",
+      "source": "./plugins/studio-unattended",
+      "description": "Scheduled wake-up runs: lock, task queue, journal, usage guard, notifications and a permission gate.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "studio-research",
+      "source": "./plugins/studio-research",
+      "description": "A phased, resumable research pipeline: parallel gatherers, a writer and a fresh checker.",
+      "version": "0.1.0"
+    }
+  ]
+}

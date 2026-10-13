@@ -1,0 +1,17 @@
+{
+  "description": "Optional push guard: when core.review.push_hook is true in .claude/studio.json, runs the review guard before any git push that could update the main branch, and denies the push when the guard fails. Off by default; the hook exits at once when it is off.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/push_guard_hook.py\"",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

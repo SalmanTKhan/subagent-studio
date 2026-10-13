@@ -1,0 +1,14 @@
+{
+  "name": "studio-context",
+  "version": "0.1.0",
+  "description": "Context budgets for CLAUDE.md, skills and agents, with token and effort-level reports.",
+  "author": {
+    "name": "subagent-studio contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "context",
+    "tokens",
+    "budgets"
+  ]
+}

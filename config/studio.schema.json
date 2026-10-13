@@ -1,0 +1,424 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/priyanshujha/subagent-studio/main/config/studio.schema.json",
+  "title": "subagent-studio project configuration (.claude/studio.json)",
+  "description": "Every section and key is optional. A missing key takes the default given here. Each plugin reads only its own section.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-call override for one agent role. A key left out means the agent file's frontmatter default.",
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Model alias or id passed as the Agent tool's model, e.g. opus, sonnet, haiku."
+        },
+        "effort": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "description": "Effort level passed as the Agent tool's effort."
+        }
+      }
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional pointer to this schema, for editors."
+    },
+    "roles": {
+      "type": "object",
+      "default": {},
+      "description": "Model and effort per agent role, passed by the orchestrating skills as per-call overrides on the Agent tool. Extra role names are allowed.",
+      "properties": {
+        "builder": {
+          "$ref": "#/$defs/role"
+        },
+        "builder-sonnet": {
+          "$ref": "#/$defs/role"
+        },
+        "reviewer": {
+          "$ref": "#/$defs/role"
+        },
+        "reviewer-pass-one": {
+          "$ref": "#/$defs/role"
+        },
+        "planner": {
+          "$ref": "#/$defs/role"
+        },
+        "planner-max": {
+          "$ref": "#/$defs/role"
+        },
+        "searcher": {
+          "$ref": "#/$defs/role"
+        },
+        "research-lead": {
+          "$ref": "#/$defs/role"
+        },
+        "gatherer": {
+          "$ref": "#/$defs/role"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "core": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "studio-core: the build loop.",
+      "properties": {
+        "main_branch": {
+          "type": "string",
+          "default": "main",
+          "description": "The branch reviewed work lands on."
+        },
+        "remote": {
+          "type": "string",
+          "default": "origin",
+          "description": "The git remote pushed to."
+        },
+        "worktree_root": {
+          "type": "string",
+          "default": "",
+          "description": "Directory holding review worktrees. Empty means ../<repo-name>-review."
+        },
+        "ci_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Commands every builder and reviewer runs to prove a change (lint, typecheck, tests)."
+        },
+        "plan": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Plan-then-build settings.",
+          "properties": {
+            "big_also": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "description": "Extra criteria that make a task big enough to plan first, added to the built-in ones."
+            }
+          }
+        },
+        "review": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Review settings.",
+          "properties": {
+            "passes": {
+              "type": "integer",
+              "enum": [
+                1,
+                2
+              ],
+              "default": 2,
+              "description": "1: a fresh reviewer only. 2: the author's pass one, then a fresh reviewer."
+            },
+            "reviewed_paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "src",
+                "lib",
+                "app",
+                "apps",
+                "packages",
+                "scripts",
+                ".github",
+                ".claude",
+                "CLAUDE.md"
+              ],
+              "description": "Paths whose changes must land through review. Anything else counts as docs."
+            },
+            "docs_only": {
+              "type": "boolean",
+              "default": true,
+              "description": "Allow changes that touch no reviewed path to land without a review branch."
+            },
+            "land": {
+              "type": "string",
+              "default": "merge-no-ff",
+              "description": "How a reviewed branch lands: a local --no-ff merge, or a pull request.",
+              "enum": [
+                "merge-no-ff",
+                "pr"
+              ]
+            },
+            "push_hook": {
+              "type": "boolean",
+              "default": false,
+              "description": "Install a PreToolUse hook that runs the review guard before any git push to the main branch."
+            },
+            "branch_prefix": {
+              "type": "string",
+              "default": "review/",
+              "description": "Prefix of review branches."
+            }
+          }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "studio-context: context budgets and reports.",
+      "properties": {
+        "budgets": {
+          "type": "array",
+          "description": "Size budgets checked by context_budget.py.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path_glob",
+              "max_bytes"
+            ],
+            "properties": {
+              "path_glob": {
+                "type": "string"
+              },
+              "max_bytes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "default": [
+            {
+              "path_glob": "CLAUDE.md",
+              "max_bytes": 32000
+            },
+            {
+              "path_glob": "STATE.md",
+              "max_bytes": 8000
+            },
+            {
+              "path_glob": "TASKS.md",
+              "max_bytes": 16000
+            },
+            {
+              "path_glob": ".claude/skills/*/SKILL.md",
+              "max_bytes": 8000
+            },
+            {
+              "path_glob": ".claude/agents/*.md",
+              "max_bytes": 6000
+            }
+          ]
+        },
+        "orientation_total_bytes": {
+          "type": "integer",
+          "default": 40000,
+          "description": "Budget for everything a run reads to orient itself.",
+          "minimum": 1
+        },
+        "timezone": {
+          "type": "string",
+          "default": "UTC",
+          "description": "IANA time zone used to bucket runs by day in reports."
+        },
+        "transcripts_dir": {
+          "type": "string",
+          "default": "",
+          "description": "Where session transcripts live. Empty means auto-detect under ~/.claude/projects/."
+        },
+        "expected_effort": {
+          "type": "object",
+          "default": {},
+          "description": "Effort level each scheduled run must end at, keyed by run name (the scheduled task's name), checked by effort_check.py.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ]
+          }
+        }
+      }
+    },
+    "unattended": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "studio-unattended: scheduled runs.",
+      "properties": {
+        "lock_file": {
+          "type": "string",
+          "default": ".wake-lock",
+          "description": "Lock file that stops scheduled runs overlapping."
+        },
+        "stale_hours": {
+          "type": "integer",
+          "default": 4,
+          "description": "A lock line older than this many hours is stale.",
+          "minimum": 1
+        },
+        "max_tasks_per_run": {
+          "type": "integer",
+          "default": 4,
+          "description": "Most tasks one run starts.",
+          "minimum": 1
+        },
+        "run_minutes": {
+          "type": "integer",
+          "default": 90,
+          "description": "Rough time budget of one run.",
+          "minimum": 1
+        },
+        "usage_guard_pct": {
+          "type": "integer",
+          "default": 85,
+          "description": "At this share of the weekly usage limit a run starts no new task.",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "scheduled_prompt_prefix": {
+          "type": "string",
+          "default": "<scheduled-task",
+          "description": "Prompt prefix by which the permission gate recognises an unattended run."
+        },
+        "notify": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Notification settings.",
+          "properties": {
+            "channels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "ops",
+                "needs-human"
+              ],
+              "description": "Channel names notify.sh accepts; each maps to a webhook URL in env_file."
+            },
+            "env_file": {
+              "type": "string",
+              "default": "~/.config/subagent-studio/notify.env",
+              "description": "File holding the webhook URLs. Never inside the repo."
+            }
+          }
+        },
+        "permission_gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Permission gate hook.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Answer permission prompts in unattended runs instead of waiting for a human."
+            },
+            "protected_paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "description": "Extra paths an unattended run may never write, added to the built-in list."
+            },
+            "deny_message_ask": {
+              "type": "string",
+              "default": "Denied: this is an unattended run and nobody can answer a permission prompt. Do the work another way, or record the blocker and move on.",
+              "description": "Message returned when a prompt would ask a human."
+            },
+            "deny_message_schedule": {
+              "type": "string",
+              "default": "Denied: an unattended run may not create or change scheduled tasks. Record the change as a task for a human.",
+              "description": "Message returned when a run tries to change schedules."
+            }
+          }
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Where the run's files live.",
+          "properties": {
+            "state": {
+              "type": "string",
+              "default": "STATE.md",
+              "description": "Current-state snapshot."
+            },
+            "tasks": {
+              "type": "string",
+              "default": "TASKS.md",
+              "description": "Task queue index."
+            },
+            "tasks_done": {
+              "type": "string",
+              "default": "TASKS-DONE.md",
+              "description": "Archive of closed tasks."
+            },
+            "task_dir": {
+              "type": "string",
+              "default": "tasks",
+              "description": "One file per task."
+            },
+            "journal_dir": {
+              "type": "string",
+              "default": "journal",
+              "description": "Append-only run log, one file per day."
+            },
+            "decisions": {
+              "type": "string",
+              "default": "DECISIONS.md",
+              "description": "Append-only decision log."
+            },
+            "plans_dir": {
+              "type": "string",
+              "default": "plans",
+              "description": "Saved plans."
+            }
+          }
+        }
+      }
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "studio-research: the research pipeline.",
+      "properties": {
+        "out_dir": {
+          "type": "string",
+          "default": "research",
+          "description": "Directory for research runs and their state."
+        },
+        "rubric": {
+          "type": "string",
+          "default": "research/rubric.md",
+          "description": "The rubric a research run scores its findings against."
+        },
+        "max_gatherers": {
+          "type": "integer",
+          "default": 6,
+          "description": "Most gatherer agents run in parallel.",
+          "minimum": 1
+        },
+        "browser": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the gatherer variant that has browser tools."
+        }
+      }
+    }
+  }
+}

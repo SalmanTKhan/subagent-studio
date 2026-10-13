@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>subagent-studio visuals</title>
+<!-- Source of the README images. Render with: node docs/img/src/render.cjs <path to playwright> -->
+<style>
+:root{--bg:#0f0f0e;--surface:#1a1a19;--surface-2:#232321;--line:#2b2a27;--ink:#f5f4ef;--ink-2:#c2c1b7;--ink-3:#8b8a82;
+  --opus:#3987e5;--sonnet:#c98500;--haiku:#d55181;--good:#5fd39e;--grey:#5f5e59;--base:#8a8982;--kit:#5fd39e;--accent:#f0b35a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
+.fig{width:1200px;background:var(--bg);padding:48px 52px 40px;margin-bottom:30px}
+.kicker{font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:650}
+h1{font-size:40px;line-height:1.1;font-weight:780;letter-spacing:-.02em;margin-top:10px}
+h1 .g{color:var(--good)}
+.sub{font-size:19px;line-height:1.5;color:var(--ink-2);margin-top:12px;max-width:1040px}
+.foot{font-size:14px;color:var(--ink-3);margin-top:22px;line-height:1.5}
+svg text{font-family:inherit}
+.chip{display:inline-block;border-radius:999px;padding:4px 11px;font-size:14px;font-weight:700;color:#fff;white-space:nowrap}
+.legend{display:flex;gap:20px;font-size:16px;color:var(--ink-2);margin-top:18px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:7px}.legend i{width:13px;height:13px;border-radius:4px;display:inline-block}
+/* architecture */
+.lead{margin-top:26px;background:var(--surface);border:1.5px solid #3a3936;border-radius:18px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.lead b{font-size:22px}.lead div>span{display:block;font-size:16px;color:var(--ink-2);margin-top:2px}
+.lab{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:650;margin:22px 0 10px}
+.row{display:grid;gap:10px}
+.c{background:var(--surface);border-radius:16px;padding:14px 15px 16px;position:relative}
+.c b{font-size:18px;display:block}.c .chip{margin-top:7px;font-size:13px;padding:3px 10px}
+.c p{font-size:15px;color:var(--ink-2);line-height:1.38;margin-top:7px}
+.ro{font-size:11.5px;color:var(--ink-3);margin-top:6px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.flow .c:not(:last-child)::after{content:"→";position:absolute;right:-11px;top:18px;color:var(--ink-3);font-size:16px}
+.mods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.m{border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.m b{font-size:17px}.m p{font-size:14.5px;color:var(--ink-2);line-height:1.4;margin-top:5px}
+</style>
+</head>
+<body>
+
+<!-- 1. architecture -->
+<div class="fig" id="architecture">
+  <div class="kicker">subagent-studio · how a change gets made</div>
+  <h1>One coordinator, lean single-purpose agents, two reviews</h1>
+  <div class="lead"><div><b>Your Claude Code session = the coordinator</b><span>Picks the work, writes briefs, reads short reports, runs git. Never edits code or reads diffs.</span></div><span class="chip" style="background:var(--opus)">your model</span></div>
+  <div class="lab">studio-core · every change</div>
+  <div class="row flow" style="grid-template-columns:repeat(5,1fr)">
+    <div class="c"><b>Planner</b><span class="chip" style="background:var(--opus)">Opus · high</span><p>Big or risky work only. A plan with a check per step.</p><div class="ro">read-only</div></div>
+    <div class="c"><b>Builder</b><span class="chip" style="background:var(--opus)">Opus · medium</span><br><span class="chip" style="background:var(--sonnet)">Sonnet · high</span><p>One step, own git worktree. Sonnet only for fully spelled-out steps.</p></div>
+    <div class="c"><b>Review 1</b><span class="chip" style="background:var(--opus)">Opus · high</span><p>The author's checklist, run by a fresh agent.</p><div class="ro">read-only</div></div>
+    <div class="c"><b>Review 2</b><span class="chip" style="background:var(--opus)">Opus · high</span><p>A fresh agent that never saw the work, on fixed commits.</p><div class="ro">read-only</div></div>
+    <div class="c"><b>Guarded landing</b><span class="chip" style="background:#4a4945">script</span><p>--no-ff merge with Reviewed-by trailers. A push guard refuses unreviewed work.</p></div>
+  </div>
+  <div class="row" style="grid-template-columns:1fr 2fr;margin-top:10px">
+    <div class="c"><b>Searcher</b><span class="chip" style="background:var(--haiku)">Haiku · high</span><p>Repo lookups: reports file and line, so the coordinator never reads many files.</p><div class="ro">read-only · never judges</div></div>
+    <div class="c" style="display:flex;flex-direction:column;justify-content:center"><b>Why it's cheap</b><p>Every agent type fixes its model, effort and a short tool list in its own file, so it starts with ~20k tokens of context, not ~80k. The coordinator's context is re-read on every request, so it stays thin. studio-core adds about 1,240 tokens to a session; the rest loads only when used.</p></div>
+  </div>
+  <div class="lab">Optional plugins</div>
+  <div class="mods">
+    <div class="m"><b>studio-context</b><p>Byte budgets for CLAUDE.md, skills and agents, a moved-text checker, a per-run token report.</p></div>
+    <div class="m"><b>studio-unattended</b><p>Scheduled "wake-up" runs: a task queue, a journal, a run lock, a usage guard and a permission gate.</p></div>
+    <div class="m"><b>studio-research</b><p>A research lead (Opus) with Haiku gatherers that cite every figure; a stronger model re-checks them.</p></div>
+  </div>
+</div>
+
+<!-- 2. origin project -->
+<div class="fig" id="origin">
+  <div class="kicker">Where it came from · one month of scheduled runs</div>
+  <h1>Same $200 plan, same reviews: a finished task went from $33 to <span class="g">$6.90</span></h1>
+  <p class="sub">The project this kit was pulled out of ran every few hours, up to 4 tasks per run, each planned, built and reviewed twice by subagents. What changed was which model ran each role, at what effort, and how much context each agent carried.</p>
+  <div class="legend"><span><i style="background:#199e70"></i>Opus 5</span><span><i style="background:#d95926"></i>Fable 5.1</span><span><i style="background:var(--opus)"></i>Opus 5.5</span><span><i style="background:var(--sonnet)"></i>Sonnet 5.5</span></div>
+  <svg id="originchart" width="1096" height="560"></svg>
+  <p class="foot">Cost of one finished task at API list prices, from the project's own session transcripts (181 runs, 463 tasks). One project, self-measured; see docs/evidence.md for the caveats.</p>
+</div>
+
+<!-- 3. where review pays -->
+<div class="fig" id="where-it-pays">
+  <div class="kicker">Where it pays · 407 reviewed changes in the original project</div>
+  <h1>Review earns its cost on real-sized changes</h1>
+  <p class="sub">How often the fresh final reviewer still found a blocker or major bug, after the first review pass had already run. Tiny changes rarely need it; anything bigger does, about one change in three.</p>
+  <svg id="paychart" width="1096" height="380"></svg>
+  <p class="foot">A fresh review cost about $0.85 at API prices. From the project's own landing messages (Sep 12 to Oct 12). One project, self-measured; see docs/evidence.md.</p>
+</div>
+
+<script>
+const NS="http://www.w3.org/2000/svg",C=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function el(p,t,a,x){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;p.appendChild(e);return e}
+function rbar(s,x,y,w,h,fill,r=8){if(h<=0)return;r=Math.min(r,h);el(s,"path",{d:`M${x},${y+h} V${y+r} q0,-${r} ${r},-${r} H${x+w-r} q${r},0 ${r},${r} V${y+h} Z`,fill})}
+
+/* origin chart */
+(function(){
+ const s=document.getElementById("originchart"),W=1096,L=150,N=6,cw=(W-L)/N,cx=i=>L+cw*i+cw/2;
+ const P=[["Plan + review","Sep 12–13",30.11,9],["Context diet","Sep 14–18",32.67,12],["Fable leads","Sep 19–22",22.59,16],["Opus 5.5 at medium","Sep 22–Oct 4",7.45,13],["Sonnet builders","Oct 5–10",7.15,13],["Fable shelved","Oct 11–12",6.90,16]];
+ const T0=30,h=250,max=34,Y=v=>T0+h-v/max*h,bw=84;
+ P.forEach((p,i)=>{const good=i>2,y=Y(p[2]);rbar(s,cx(i)-bw/2,y,bw,Y(0)-y,good?C("--good"):C("--grey"));
+  el(s,"text",{x:cx(i),y:y-10,"text-anchor":"middle","font-size":24,"font-weight":780,fill:good?C("--good"):C("--ink")},"$"+(p[2]<10?p[2].toFixed(2):Math.round(p[2])));
+  el(s,"text",{x:cx(i),y:Y(0)+26,"text-anchor":"middle","font-size":16,"font-weight":700,fill:C("--ink")},p[0]);
+  el(s,"text",{x:cx(i),y:Y(0)+46,"text-anchor":"middle","font-size":14,fill:C("--ink-3")},p[1]);});
+ el(s,"line",{x1:L,x2:W,y1:Y(0),y2:Y(0),stroke:"#4a4945","stroke-width":1.5});
+ el(s,"text",{x:0,y:T0+h/2,"font-size":17,"font-weight":700,fill:C("--ink")},"Cost per");el(s,"text",{x:0,y:T0+h/2+22,"font-size":17,"font-weight":700,fill:C("--ink")},"finished task");
+ let y=Y(0)+76;const lh=54;
+ const lanes=[["Lead",[[0,2,"#199e70","Opus 5 · xhigh"],[2,3,"#d95926","Fable · xhigh"],[3,6,C("--opus"),"Opus 5.5 · medium"]]],
+  ["Builders",[[0,2,"#199e70","Opus 5 · xhigh"],[2,3,"#199e70","Opus 5 · high"],[3,4,C("--opus"),"Opus 5.5 · medium"],[4,6,"split",""]]],
+  ["Reviewers",[[0,3,"#199e70","Opus 5 · xhigh"],[3,4,C("--opus"),"Opus 5.5 · xhigh"],[4,5,C("--opus"),"high + xhigh"],[5,6,C("--opus"),"Opus 5.5 · high"]]]];
+ lanes.forEach(([n,segs])=>{el(s,"text",{x:0,y:y+lh/2+6,"font-size":17,"font-weight":700,fill:C("--ink")},n);
+  segs.forEach(([a,b,col,lab])=>{const x=L+cw*a+3,w=cw*(b-a)-6,mid=x+w/2;
+   if(col==="split"){el(s,"rect",{x,y:y+3,width:w,height:lh/2-4,rx:7,fill:C("--opus")});el(s,"rect",{x,y:y+lh/2+1,width:w,height:lh/2-4,rx:7,fill:C("--sonnet")});
+     el(s,"text",{x:mid,y:y+lh/4+6,"text-anchor":"middle","font-size":14,"font-weight":700,fill:"#fff"},"Opus 5.5 · medium");el(s,"text",{x:mid,y:y+3*lh/4+5,"text-anchor":"middle","font-size":14,"font-weight":700,fill:"#fff"},"Sonnet 5.5 · high");return}
+   el(s,"rect",{x,y:y+3,width:w,height:lh-6,rx:9,fill:col});
+   el(s,"text",{x:mid,y:y+lh/2+6,"text-anchor":"middle","font-size":w>200?16:13.5,"font-weight":700,fill:"#fff"},lab);});
+  y+=lh+8;});
+ el(s,"text",{x:0,y:y+24,"font-size":17,"font-weight":700,fill:C("--ink")},"Subagents/run");
+ P.forEach((p,i)=>el(s,"text",{x:cx(i),y:y+28,"text-anchor":"middle","font-size":26,"font-weight":780,fill:C("--ink")},p[3]));
+ s.setAttribute("height",y+44);
+})();
+
+/* where review pays */
+(function(){
+ const s=document.getElementById("paychart"),W=1096,L=0;
+ const D=[["Under 50 lines",55,9],["50–199 lines",97,33],["200–799 lines",145,35],["800+ lines",110,38]];
+ const T0=40,h=240,max=45,Y=v=>T0+h-v/max*h,cw=W/4,bw=150;
+ D.forEach(([lab,n,v],i)=>{const cx=cw*i+cw/2,y=Y(v),good=i>0;
+   rbar(s,cx-bw/2,y,bw,Y(0)-y,good?C("--good"):C("--grey"),10);
+   el(s,"text",{x:cx,y:y-14,"text-anchor":"middle","font-size":34,"font-weight":780,fill:good?C("--good"):C("--ink")},v+"%");
+   el(s,"text",{x:cx,y:Y(0)+30,"text-anchor":"middle","font-size":19,"font-weight":700,fill:C("--ink")},lab);
+   el(s,"text",{x:cx,y:Y(0)+54,"text-anchor":"middle","font-size":15.5,fill:C("--ink-3")},n+" changes");});
+ el(s,"line",{x1:0,x2:W,y1:Y(0),y2:Y(0),stroke:"#4a4945","stroke-width":1.5});
+})();
+</script>
+</body>
+</html>

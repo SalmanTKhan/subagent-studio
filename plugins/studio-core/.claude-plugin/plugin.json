@@ -1,0 +1,15 @@
+{
+  "name": "studio-core",
+  "version": "0.1.0",
+  "description": "Lean builder, reviewer and planner agents with the plan-then-build and two-pass review skills.",
+  "author": {
+    "name": "subagent-studio contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "subagents",
+    "code-review",
+    "planning",
+    "worktrees"
+  ]
+}
